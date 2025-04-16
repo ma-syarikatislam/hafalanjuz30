@@ -42,6 +42,7 @@
     }
     .progress-bar-inner {
       height: 100%;
+      background: #4caf50;
       width: 0%;
       transition: width 0.5s ease;
       display: flex;
@@ -101,12 +102,10 @@
     </div>
     <ul id="surahList"></ul>
     <canvas id="pieChart" width="400" height="400"></canvas>
-
     <div id="sudahSetorJuz" class="list-box sudah-juz" style="display: none;">
       <h3>Sudah Setor 1 Juz:</h3>
       <ul id="juzList"></ul>
     </div>
-
     <div id="belumSetorList" class="list-box belum-setor" style="display: none;">
       <h3>Belum Setor Sama Sekali:</h3>
       <ul id="belumList"></ul>
@@ -134,6 +133,7 @@
           students.map((s, i) => `<option value="${i}">${s.name}</option>`).join("");
 
         // PIE CHART
+        let totalSiswa = students.length;
         let setorPenuh = students.filter(s => s.hafalan.every(Boolean));
         let sudahSetor = students.filter(s => s.hafalan.some(Boolean) && !s.hafalan.every(Boolean));
         let belumSetor = students.filter(s => !s.hafalan.some(Boolean));
@@ -177,6 +177,7 @@
           plugins: [ChartDataLabels]
         });
 
+        // Daftar siswa sudah setor 1 juz
         if (setorPenuh.length > 0) {
           const juzListEl = document.getElementById("juzList");
           const wrapper = document.getElementById("sudahSetorJuz");
@@ -184,6 +185,7 @@
           wrapper.style.display = "block";
         }
 
+        // Daftar belum setor
         if (belumSetor.length > 0) {
           const belumListEl = document.getElementById("belumList");
           const wrapper = document.getElementById("belumSetorList");
@@ -209,6 +211,7 @@
       const siswa = students[idx];
       let total = siswa.hafalan.length;
       let selesai = siswa.hafalan.filter(Boolean).length;
+      let sisa = total - selesai;
       let persen = Math.round((selesai / total) * 100);
 
       if (selesai === 0) {
@@ -224,7 +227,7 @@
         progressBar.textContent = `100%`;
         progressBar.style.backgroundColor = '#4caf50';
       } else {
-        progressText.textContent = `Sudah Setor Hafalan ${selesai} Surat`;
+        progressText.textContent = `Sudah setor hafalan ${selesai} Surat, sisa ${sisa} Surat lagi.`;
         progressBar.style.width = `${persen}%`;
         progressBar.textContent = `${persen}%`;
 
