@@ -97,7 +97,7 @@
     <div id="progress" class="progress">
       <div class="progress-text" id="progressText"></div>
       <div class="progress-bar">
-        <div class="progress-bar-inner" id="progressBar">0%</div>
+        <div class="progress-bar-inner" id="progressBar"></div>
       </div>
     </div>
     <ul id="surahList"></ul>
@@ -203,7 +203,7 @@
       progressText.textContent = "";
       progressText.classList.remove("red", "green");
       progressBar.style.width = "0%";
-      progressBar.textContent = "0%";
+      progressBar.textContent = "";
       progressBar.style.backgroundColor = "#e0e0e0";
 
       if (!idx) return;
@@ -218,7 +218,7 @@
         progressText.textContent = `Belum Setor Hafalan`;
         progressText.classList.add("red");
         progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
+        progressBar.textContent = ""; // Tidak ada teks
         progressBar.style.backgroundColor = '#f44336';
       } else if (persen === 100) {
         progressText.textContent = `Selamat, kamu sudah menyelesaikan Ujian Hafalan Al-Quran Juz Ke-30`;
