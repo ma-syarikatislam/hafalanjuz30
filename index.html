@@ -41,7 +41,6 @@
     }
     .progress-bar-inner {
       height: 100%;
-      background: #4caf50;
       width: 0%;
       transition: width 0.5s ease;
       display: flex;
@@ -50,6 +49,9 @@
       color: white;
       font-weight: bold;
     }
+    .progress-bar.low { background: #f44336; }
+    .progress-bar.medium { background: #ff9800; }
+    .progress-bar.high { background: #4caf50; }
     ul {
       list-style: none;
       padding: 0;
@@ -59,6 +61,9 @@
       padding: 0.75rem;
       border-bottom: 1px solid #ccc;
       font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .done {
       background-color: #d4edda;
@@ -100,17 +105,18 @@
       </div>
     </div>
     <ul id="surahList"></ul>
-    <canvas id="pieChart" width="400" height="400"></canvas><div id="sudahSetorJuz" class="list-box sudah-juz" style="display: none;">
-  <h3>Sudah Setor 1 Juz:</h3>
-  <ul id="juzList"></ul>
-</div>
+    <canvas id="pieChart" width="400" height="400"></canvas>
+    <div id="sudahSetorJuz" class="list-box sudah-juz" style="display: none;">
+      <h3>Sudah Setor 1 Juz:</h3>
+      <ul id="juzList"></ul>
+    </div>
+    <div id="belumSetorList" class="list-box belum-setor" style="display: none;">
+      <h3>Belum Setor Sama Sekali:</h3>
+      <ul id="belumList"></ul>
+    </div>
+  </div>
 
-<div id="belumSetorList" class="list-box belum-setor" style="display: none;">
-  <h3>Belum Setor Sama Sekali:</h3>
-  <ul id="belumList"></ul>
-</div>
-
-  </div>  <script>
+  <script>
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRpOWEh7dh7rvihlonkwPCMQnchwzbQbss-2t1bL-Ql0F_0sofzBDqNPBPDTpa2B56893EwamUDJBs5/pub?gid=0&single=true&output=csv";
 
     let students = [];
@@ -126,12 +132,13 @@
           hafalan: row.slice(1).map(val => val.trim() === "1")
         }));
 
+        students.sort((a, b) => a.name.localeCompare(b.name));
+
         const select = document.getElementById("student");
         select.innerHTML = `<option value="">-- Pilih --</option>` +
           students.map((s, i) => `<option value="${i}">${s.name}</option>`).join("");
 
         // PIE CHART
-        let totalSiswa = students.length;
         let setorPenuh = students.filter(s => s.hafalan.every(Boolean));
         let sudahSetor = students.filter(s => s.hafalan.some(Boolean) && !s.hafalan.every(Boolean));
         let belumSetor = students.filter(s => !s.hafalan.some(Boolean));
@@ -202,6 +209,7 @@
       progressText.classList.remove("red", "green");
       progressBar.style.width = "0%";
       progressBar.textContent = "0%";
+      progressBar.className = "progress-bar-inner";
 
       if (!idx) return;
 
@@ -213,25 +221,34 @@
       if (selesai === 0) {
         progressText.textContent = `Belum Setor Hafalan`;
         progressText.classList.add("red");
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
+        progressBar.classList.add("low");
       } else if (persen === 100) {
         progressText.textContent = `Selamat, kamu sudah menyelesaikan Ujian Hafalan Al-Quran Juz Ke-30`;
         progressText.classList.add("green");
-        progressBar.style.width = `100%`;
-        progressBar.textContent = `100%`;
+        progressBar.classList.add("high");
       } else {
-        progressText.textContent = `Sudah Setor Hafalan ${selesai} Surat`;
-        progressBar.style.width = `${persen}%`;
-        progressBar.textContent = `${persen}%`;
+        progressText.textContent = `Sudah Setor ${selesai} dari ${total} Surat`;
+        if (persen < 30) {
+          progressBar.classList.add("low");
+        } else if (persen < 70) {
+          progressBar.classList.add("medium");
+        } else {
+          progressBar.classList.add("high");
+        }
       }
+
+      progressBar.style.width = `${persen}%`;
+      progressBar.textContent = `${persen}%`;
 
       surahHeaders.forEach((surah, i) => {
         const li = document.createElement("li");
         li.textContent = surah;
+        const badge = siswa.hafalan[i] ? "??" : "?";
+        li.innerHTML = `${surah} <span>${badge}</span>`;
         if (siswa.hafalan[i]) li.classList.add("done");
         list.appendChild(li);
       });
     });
-  </script></body>
+  </script>
+</body>
 </html>
