@@ -42,7 +42,6 @@
     }
     .progress-bar-inner {
       height: 100%;
-      background: #4caf50;
       width: 0%;
       transition: width 0.5s ease;
       display: flex;
@@ -102,7 +101,7 @@
     </div>
     <ul id="surahList"></ul>
     <canvas id="pieChart" width="400" height="400"></canvas>
-    
+
     <div id="sudahSetorJuz" class="list-box sudah-juz" style="display: none;">
       <h3>Sudah Setor 1 Juz:</h3>
       <ul id="juzList"></ul>
@@ -134,7 +133,7 @@
         select.innerHTML = `<option value="">-- Pilih --</option>` +
           students.map((s, i) => `<option value="${i}">${s.name}</option>`).join("");
 
-        let totalSiswa = students.length;
+        // PIE CHART
         let setorPenuh = students.filter(s => s.hafalan.every(Boolean));
         let sudahSetor = students.filter(s => s.hafalan.some(Boolean) && !s.hafalan.every(Boolean));
         let belumSetor = students.filter(s => !s.hafalan.some(Boolean));
@@ -203,6 +202,7 @@
       progressText.classList.remove("red", "green");
       progressBar.style.width = "0%";
       progressBar.textContent = "0%";
+      progressBar.style.backgroundColor = "#e0e0e0";
 
       if (!idx) return;
 
@@ -227,7 +227,14 @@
         progressText.textContent = `Sudah Setor Hafalan ${selesai} Surat`;
         progressBar.style.width = `${persen}%`;
         progressBar.textContent = `${persen}%`;
-        progressBar.style.backgroundColor = (persen >= 50) ? '#ff9800' : '#f44336';
+
+        if (persen > 70) {
+          progressBar.style.backgroundColor = '#4caf50';
+        } else if (persen >= 50) {
+          progressBar.style.backgroundColor = '#ff9800';
+        } else {
+          progressBar.style.backgroundColor = '#f44336';
+        }
       }
 
       surahHeaders.forEach((surah, i) => {
