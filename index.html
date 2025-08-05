@@ -41,6 +41,16 @@
     select {
       width: 100%; padding: 0.5rem; margin-top: 0.5rem; font-size: 1rem;
     }
+    button#refreshBtn {
+      margin-top: -1rem;
+      padding: 0rem 0rem;
+      font-size: 1.2rem;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 15x;
+      cursor: pointer;
+    }
     .progress {
       margin-top: 1rem; text-align: center;
     }
@@ -111,6 +121,10 @@
       position: relative;
       overflow: hidden;
     }
+    .award-card.perak {
+      background: linear-gradient(135deg, #c0c0c0, #f5f5f5);
+      border: 2px solid #999;
+    }
     .award-card.khatam::before {
       content: "";
       position: absolute;
@@ -119,10 +133,10 @@
       width: 200%;
       height: 200%;
       background: linear-gradient(
-      120deg,
-      rgba(255,255,255,0) 40%,
-      rgba(255,255,255,0.6) 50%,
-      rgba(255,255,255,0) 60%
+        120deg,
+        rgba(255,255,255,0) 40%,
+        rgba(255,255,255,0.6) 50%,
+        rgba(255,255,255,0) 60%
       );
       transform: rotate(25deg);
       animation: shimmer 2.5s infinite;
@@ -130,10 +144,10 @@
     }
     @keyframes shimmer {
       0% {
-      transform: translateX(-100%) rotate(25deg);
+        transform: translateX(-100%) rotate(25deg);
       }
       100% {
-      transform: translateX(100%) rotate(25deg);
+        transform: translateX(100%) rotate(25deg);
       }
     }
     .award-card .trophy {
@@ -168,9 +182,8 @@
     </div>
 
     <label for="student">Pilih Nama:</label>
-    <select id="student">
-      <option value="">-- Memuat data... --</option>
-    </select>
+    <select id="student"><option value="">-- Memuat data... --</option></select>
+   
 
     <div id="progress" class="progress">
       <div class="progress-text" id="progressText"></div>
@@ -180,7 +193,10 @@
     </div>
 
     <div class="leaderboard" id="leaderboardSection">
-      <h3><center>Progres Hafalan</center></h3>
+    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+      <h3 style="margin: 0;">Progres Hafalan</h3>
+      <button id="refreshBtn" style="background: none; color: green;">♻</button>
+    </div>
       <div id="leaderboardList"></div>
     </div>
 
@@ -193,62 +209,66 @@
     let students = [];
     let surahHeaders = [];
 
-    fetch(SHEET_URL)
-      .then(res => res.text())
-      .then(csv => {
-        const rows = csv.trim().split("\n").map(row => row.split(","));
-        surahHeaders = rows[0].slice(1);
-        students = rows.slice(1).map(row => {
-          const hafalan = row.slice(1).map(val => val.trim());
-          const M = hafalan.filter(v => v === "M").length;
-          const J = hafalan.filter(v => v === "J").length;
-          const total = hafalan.length;
-          const isKhatam = (M + J === total);
-          return { name: row[0], hafalan, M, J, isKhatam };
-        });
-
-        const select = document.getElementById("student");
-        select.innerHTML = `<option value="">-- Pilih --</option>` +
-          students.map((s, i) => `<option value="${i}">${s.name}</option>`).join("");
-
-        const leaderboard = students
-          .filter(s => s.M + s.J > 0)
-          .sort((a, b) => {
-            if (b.isKhatam !== a.isKhatam) return b.isKhatam - a.isKhatam;
-            return b.M - a.M;
+    function fetchData() {
+      fetch(SHEET_URL)
+        .then(res => res.text())
+        .then(csv => {
+          const rows = csv.trim().split("\n").map(row => row.split(","));
+          surahHeaders = rows[0].slice(1);
+          students = rows.slice(1).map(row => {
+            const hafalan = row.slice(1).map(val => val.trim());
+            const M = hafalan.filter(v => v === "M").length;
+            const J = hafalan.filter(v => v === "J").length;
+            const total = hafalan.length;
+            const isKhatam = (M + J === total);
+            return { name: row[0], hafalan, M, J, isKhatam };
           });
 
-        const leaderboardList = document.getElementById("leaderboardList");
-        leaderboardList.innerHTML = `
-          <div class="award-grid">
-            ${leaderboard.map(s => `
-              <div class="award-card ${s.isKhatam ? 'khatam' : ''}">
-                <div class="trophy">
-                  ${s.isKhatam ? '🏆' : ''}
-                </div>
+          renderSelect();
+          renderLeaderboard();
+        });
+    }
+
+    function renderSelect() {
+      const select = document.getElementById("student");
+      select.innerHTML = `<option value="">-- Pilih --</option>` +
+        students.map((s, i) => `<option value="${i}">${s.name}</option>`).join("");
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = students
+        .filter(s => s.M + s.J > 0)
+        .sort((a, b) => {
+          if (b.isKhatam !== a.isKhatam) return b.isKhatam - a.isKhatam;
+          return b.M - a.M;
+        });
+
+      const leaderboardList = document.getElementById("leaderboardList");
+      leaderboardList.innerHTML = `
+        <div class="award-grid">
+          ${leaderboard.map(s => {
+            const isPerak = s.isKhatam && s.J > s.M;
+            const khatamClass = s.isKhatam ? (isPerak ? 'khatam perak' : 'khatam') : '';
+            return `
+              <div class="award-card ${khatamClass}">
+                <div class="trophy">${s.isKhatam ? '🏆' : ''}</div>
                 <div class="info">
                   <div class="name">${s.name}</div>
-                  ${!s.isKhatam ? `
                     <div class="medals">
-                      <span>🥇 ${s.M > 0 ? s.M : '-'}</span>
-                      <span>🥈 ${s.J > 0 ? s.J : '-'}</span>
+                    🥇 ${s.M === 0 ? '-' : s.M} 🥈 ${s.J === 0 ? '-' : s.J}
                     </div>
-                  ` : ''}
                 </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-      });
+              </div>`;
+          }).join('')}
+        </div>`;
+    }
 
-    const select = document.getElementById("student");
-    const list = document.getElementById("surahList");
-    const progressText = document.getElementById("progressText");
-    const progressBar = document.getElementById("progressBar");
-    const leaderboardSection = document.getElementById("leaderboardSection");
-
-    select.addEventListener("change", function () {
+    document.getElementById("student").addEventListener("change", function () {
       const idx = this.value;
+      const list = document.getElementById("surahList");
+      const progressText = document.getElementById("progressText");
+      const progressBar = document.getElementById("progressBar");
+      const leaderboardSection = document.getElementById("leaderboardSection");
 
       list.innerHTML = "";
       progressText.textContent = "";
@@ -256,7 +276,6 @@
       progressBar.style.width = "0%";
       progressBar.textContent = "";
       progressBar.style.backgroundColor = "#e0e0e0";
-
       leaderboardSection.style.display = idx ? "none" : "block";
 
       if (!idx) return;
@@ -292,19 +311,34 @@
       surahHeaders.forEach((surah, i) => {
         const li = document.createElement("li");
         li.textContent = surah;
-
         const nilai = siswa.hafalan[i];
-        if (nilai === "M") li.classList.add("m-value");
-        else if (nilai === "J") li.classList.add("j-value");
-
+        if (nilai === "M") {
+          li.classList.add("m-value");
+          li.title = "Mutqin";
+        } else if (nilai === "J") {
+          li.classList.add("j-value");
+          li.title = "Jiddan";
+        } else {
+          li.textContent += "-";
+          li.title = "Belum Setor Hafalan";
+        }
         list.appendChild(li);
       });
     });
 
     document.getElementById("homeBtn").addEventListener("click", () => {
-      select.value = "";
-      select.dispatchEvent(new Event("change"));
+      document.getElementById("student").value = "";
+      document.getElementById("student").dispatchEvent(new Event("change"));
     });
+
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+      fetchData();
+      document.getElementById("student").value = "";
+      document.getElementById("student").dispatchEvent(new Event("change"));
+    });
+
+    // Initial load
+    fetchData();
   </script>
 </body>
 </html>
